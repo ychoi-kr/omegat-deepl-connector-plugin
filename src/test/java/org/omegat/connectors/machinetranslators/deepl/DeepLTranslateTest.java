@@ -23,7 +23,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package org.omegat.machinetranslators.deepl;
+package org.omegat.connectors.machinetranslators.deepl;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,7 +47,7 @@ import org.omegat.util.PreferencesXML;
 import org.omegat.util.RuntimePreferences;
 
 @WireMockTest
-public class DeepLTranslate2Test {
+public class DeepLTranslateTest {
 
     private File tmpDir;
 
@@ -61,7 +61,7 @@ public class DeepLTranslate2Test {
         Assertions.assertTrue(tmpDir.isDirectory());
         File prefsFile = new File(tmpDir, Preferences.FILE_PREFERENCES);
         Preferences.IPreferences prefs = new PreferencesImpl(new PreferencesXML(null, prefsFile));
-        prefs.setPreference(DeepLTranslate2.ALLOW_DEEPL_TRANSLATE, true);
+        prefs.setPreference(DeepLTranslate.ALLOW_DEEPL_TRANSLATE, true);
         RuntimePreferences.setConfigDir(prefsFile.getAbsolutePath());
         Preferences.init();
         Preferences.initFilters();
@@ -81,11 +81,11 @@ public class DeepLTranslate2Test {
     void testResponse(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
         String key = "deepl8api8key";
 
-        WireMock.stubFor(WireMock.post(WireMock.urlPathEqualTo("/v1/translate"))
+        WireMock.stubFor(WireMock.post(WireMock.urlPathEqualTo("/v2/translate"))
                 .withHeader("Authorization", WireMock.equalTo("DeepL-Auth-Key " + key))
                 .withRequestBody(containing("text=source+text"))
-                .withRequestBody(containing("source_lang=de-DE"))
-                .withRequestBody(containing("target_lang=en-US"))
+                .withRequestBody(containing("source_lang=DE"))
+                .withRequestBody(containing("target_lang=EN-US"))
                 .willReturn(WireMock.aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -98,14 +98,14 @@ public class DeepLTranslate2Test {
         int port = wireMockRuntimeInfo.getHttpPort();
         String url = String.format("http://localhost:%d", port);
         String sourceText = "source text";
-        DeepLTranslate2 deepLTranslate = new DeepLTranslate2TestStub(url, key);
+        DeepLTranslate deepLTranslate = new DeepLTranslateTestStub(url, key);
         String result = deepLTranslate.translate(new Language("de-DE"), new Language("en-US"), sourceText);
         assertEquals("Hello World!", result);
     }
 
-    static class DeepLTranslate2TestStub extends DeepLTranslate2 {
+    static class DeepLTranslateTestStub extends DeepLTranslate {
 
-        DeepLTranslate2TestStub(String url, String key) {
+        DeepLTranslateTestStub(String url, String key) {
             super(url, key);
         }
 
